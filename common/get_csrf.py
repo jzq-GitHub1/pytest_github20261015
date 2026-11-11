@@ -1,20 +1,24 @@
 from common.request_util import RequestUtil
 from common.write_yaml import WriteYaml
 from common.find_file import find_path
+from common.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_csrf_token():
 
     url = "http://47.107.116.139/phpwind/"
     csrf_token_data = RequestUtil().send_request(method="get", url=url).cookies.get("csrf_token")
+    if csrf_token_data is None:
+        logger.error("获取 csrf_token 失败：响应 Cookie 中没有 csrf_token")
+        return None
+
     csrf_token = {"csrf_token": csrf_token_data}
-    WriteYaml(write_path=find_path("yaml_file","new_write_data.yaml"),
-              write_data=csrf_token).write_yaml_w()
-    # print(csrf_token)
+    write_path = find_path("yaml_file", "new_write_data.yaml")
+    WriteYaml(write_path=write_path, write_data=csrf_token).write_yaml_w()
+    logger.info("获取 csrf_token 成功，已写入 %s", write_path)
     return csrf_token_data
-
-
-# print(get_csrf_token())
 
 
 # --------------------
