@@ -3,10 +3,14 @@ from common.get_csrf import get_csrf_token
 from common.read_yaml import read_yaml_data
 from common.request_util import RequestUtil
 from common.find_file import find_path
+from common.logger import get_logger
+
+logger = get_logger(__name__)
 
 csrf_token = get_csrf_token()
 def test_login():
     url = "http://47.107.116.139/phpwind/index.php?m=u&c=login&a=dorun"
+    logger.info("用例开始: 登录接口 %s", url)
     data = {
         "username": "13345678901",
         "password": "123456",
@@ -22,8 +26,15 @@ def test_login():
 
     # res = requests.post(url=url, data=data, headers=headers, cookies=cookies)
     res = RequestUtil().send_request(method="post", url=url, data=data, headers=headers)
-    print(res.json())
-    assert res.json()["state"] == "success"
+    try:
+        res_json = res.json()
+    except ValueError:
+        logger.error("登录响应不是合法的 JSON | 状态码: %s | 响应体: %s",
+                     res.status_code, res.text[:300])
+        raise
+    logger.info("登录响应: %s", res_json)
+    assert res_json["state"] == "success", f"登录失败，响应内容: {res_json}"
+    logger.info("用例结束: 登录成功")
 
 
 if __name__ == '__main__':
